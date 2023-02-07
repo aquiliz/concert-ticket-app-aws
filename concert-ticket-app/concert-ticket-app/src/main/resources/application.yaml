@@ -1,0 +1,17 @@
+spring:
+  datasource:
+    url: ${DATA_SOURCE_URL}
+    username: ${DATA_SOURCE_USERNAME}
+    password: ${DATA_SOURCE_PASSWORD}
+
+ticket-app:
+  ticket-purchase-queue-url: ${TICKET_PURCHASE_QUEUE_URL}
+
+cloud:
+  aws:
+    region:
+      auto: false
+      static: ${AWS_REGION}
+      use-default-aws-region-chain: true
+    stack: false
+    stack.auto: false
