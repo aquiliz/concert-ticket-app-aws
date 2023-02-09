@@ -1,6 +1,8 @@
 package com.aquiliz.booking.concertticketapp.messaging;
 
 import com.amazonaws.services.sqs.AmazonSQSAsync;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.aws.messaging.core.QueueMessageChannel;
@@ -18,6 +20,8 @@ public class MessageSender {
 
   private final AmazonSQSAsync amazonSqs;
 
+  private final ObjectMapper objectMapper = new ObjectMapper();
+
   public MessageSender(AmazonSQSAsync amazonSqs) {
     this.amazonSqs = amazonSqs;
   }
@@ -25,8 +29,13 @@ public class MessageSender {
   public void send(TicketMessage ticketMessage) {
     MessageChannel messageChannel
         = new QueueMessageChannel(amazonSqs, queueUrl);
-    Message<TicketMessage> msg = MessageBuilder.withPayload(ticketMessage)
-        .build();
+    Message<String> msg = null;
+    try {
+      msg = MessageBuilder.withPayload(objectMapper.writeValueAsString(ticketMessage))
+          .build();
+    } catch (JsonProcessingException e) {
+      throw new RuntimeException("Failed to serialize TicketBooking to json string", e);
+    }
     log.debug("About to send message to queue: '{}' , message: {}", queueUrl, ticketMessage);
     boolean sentStatus = messageChannel.send(msg, 5000);
     if (sentStatus) {
